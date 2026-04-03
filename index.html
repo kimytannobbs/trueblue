@@ -260,7 +260,7 @@ const STORAGE_KEY = 'trueblue_v2_clients';
 const SHEET_URL_KEY = 'trueblue_sheet_url';
 
 let clients = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-let sheetUrl = localStorage.getItem(SHEET_URL_KEY) || '';
+let sheetUrl = localStorage.getItem(SHEET_URL_KEY) || 'https://script.google.com/macros/s/AKfycbyPq4y0n_IfLLw_emvP-uqiHNenl8NGKlOmOO7LrhSXxQu8D5RurthFN69WAL70VFTo/exec';
 let selectedId = null;
 let currentTab = 'clients';
 let searchTerm = '';
