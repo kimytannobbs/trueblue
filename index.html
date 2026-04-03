@@ -283,25 +283,26 @@ async function syncNow() {
   syncState = 'syncing';
   renderSyncStatus();
   try {
-    // Push via form POST (bypasses CORS)
-    const form = new FormData();
-    form.append('action', 'write');
-    form.append('data', JSON.stringify(clients));
-    await fetch(sheetUrl, {method:'POST', mode:'no-cors', body: form});
-    // Wait for sheet to save
-    await new Promise(r => setTimeout(r, 2500));
-    // Pull latest
+    // PULL FIRST - get latest from sheet
     const getRes = await fetch(sheetUrl + '?action=read&t=' + Date.now());
     if (getRes.ok) {
       const text = await getRes.text();
       try {
         const data = JSON.parse(text);
-        if (data && Array.isArray(data.clients)) {
-          clients = data.clients;
-          saveLocal();
+        if (data && Array.isArray(data.clients) && data.clients.length > 0) {
+          // Sheet has more clients than local - use sheet data
+          if (data.clients.length >= clients.length) {
+            clients = data.clients;
+            saveLocal();
+          }
         }
       } catch(pe) {}
     }
+    // THEN PUSH local data to sheet
+    const form = new FormData();
+    form.append('action', 'write');
+    form.append('data', JSON.stringify(clients));
+    await fetch(sheetUrl, {method:'POST', mode:'no-cors', body: form});
     syncState = 'ok';
     lastSync = new Date();
     toast('Synced with Google Sheets ✓');
