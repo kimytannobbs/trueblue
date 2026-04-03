@@ -283,11 +283,15 @@ async function syncNow() {
   syncState = 'syncing';
   renderSyncStatus();
   try {
-    const pushUrl = sheetUrl + '?action=write&data=' + encodeURIComponent(JSON.stringify(clients)) + '&t=' + Date.now();
-    await fetch(pushUrl, {mode:'no-cors'});
-    await new Promise(r => setTimeout(r, 1800));
-    const getUrl = sheetUrl + '?action=read&t=' + Date.now();
-    const getRes = await fetch(getUrl, {mode:'cors'});
+    // Push via form POST (bypasses CORS)
+    const form = new FormData();
+    form.append('action', 'write');
+    form.append('data', JSON.stringify(clients));
+    await fetch(sheetUrl, {method:'POST', mode:'no-cors', body: form});
+    // Wait for sheet to save
+    await new Promise(r => setTimeout(r, 2500));
+    // Pull latest
+    const getRes = await fetch(sheetUrl + '?action=read&t=' + Date.now());
     if (getRes.ok) {
       const text = await getRes.text();
       try {
@@ -311,8 +315,10 @@ async function syncNow() {
 async function pushToSheet() {
   if (!sheetUrl) return;
   try {
-    const pushUrl = sheetUrl + '?action=write&data=' + encodeURIComponent(JSON.stringify(clients)) + '&t=' + Date.now();
-    fetch(pushUrl, {mode:'no-cors'});
+    const form = new FormData();
+    form.append('action', 'write');
+    form.append('data', JSON.stringify(clients));
+    fetch(sheetUrl, {method:'POST', mode:'no-cors', body: form});
   } catch(e) {}
 }
 
